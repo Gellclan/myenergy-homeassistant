@@ -19,6 +19,13 @@ from .logic import Tracker, meter_doc, plug_doc, plug_id, to_kwh, to_watt, write
 
 _LOGGER = logging.getLogger(__name__)
 _OFF = ("unavailable", "unknown", "")
+# Hinweise in Home Assistant (persistent_notification kennt keine Übersetzungsdateien): Englisch, Deutsch bei deutschem HA
+_NOTICE = {
+    401: {"en": "The myEnergy pairing key is unknown or revoked. Generate a new one in myEnergy under Settings → Electricity automatically and set up the integration again.",
+          "de": "Der Kopplungsschlüssel ist unbekannt oder widerrufen. Erzeuge in myEnergy unter Einstellungen → Strom automatisch einen neuen und richte die Integration neu ein."},
+    402: {"en": "Live is not included in your myEnergy plan. As soon as you have Live, the integration sends again (checked hourly).",
+          "de": "Live ist in deinem myEnergy-Plan nicht enthalten. Sobald du Live hast, sendet die Integration wieder (stündliche Prüfung)."},
+}
 
 
 def _num(state: State | None) -> float | None:
@@ -114,8 +121,7 @@ class Sender:
                 self.last_days = now
         elif status in (401, 402):
             self.pause_until = now + NO_PLAN_RETRY_S
-            msg = ("Der Kopplungsschlüssel ist unbekannt oder widerrufen. Erzeuge in myEnergy unter Einstellungen → Strom automatisch einen neuen und richte die Integration neu ein."
-                   if status == 401 else "Live ist in deinem myEnergy-Plan nicht enthalten. Sobald du Live hast, sendet die Integration wieder (stündliche Prüfung).")
+            msg = _NOTICE[status]["de" if (self.hass.config.language or "").startswith("de") else "en"]
             notify(self.hass, msg, title="myEnergy", notification_id=f"myenergy_{status}")
             _LOGGER.warning("myEnergy: %s", msg)
 

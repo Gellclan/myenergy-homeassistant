@@ -1,11 +1,14 @@
 {
   "domain": "myenergy",
   "name": "myEnergy",
-  "codeowners": [],
+  "codeowners": [
+    "@Gellclan"
+  ],
   "config_flow": true,
   "documentation": "https://myenergy-63712.web.app/hilfe#live",
   "integration_type": "service",
   "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/Gellclan/myenergy-homeassistant/issues",
   "requirements": [],
   "version": "0.1.0"
 }

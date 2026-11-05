@@ -12,7 +12,7 @@ Schickt Leistung und Verbrauch deiner Steckdosen und deines Smart Meters aus Hom
 
 ## Installation
 
-1. HACS → Integrationen → ⋮ → **Benutzerdefinierte Repositories** → Link dieses Repositorys, Kategorie **Integration** → myEnergy herunterladen.
+1. HACS → Integrationen → ⋮ → **Benutzerdefinierte Repositories** → `https://github.com/Gellclan/myenergy-homeassistant`, Kategorie **Integration** → myEnergy herunterladen.
    Ohne HACS: Ordner `custom_components/myenergy` nach `config/custom_components/` kopieren.
 2. Home Assistant neu starten.
 3. In myEnergy: **Einstellungen → Strom automatisch → Schlüssel erzeugen**, Schlüssel kopieren.
@@ -36,7 +36,7 @@ account, where you see live values, statistics and cost per device and room.
 
 ## Installation
 
-1. HACS → Integrations → ⋮ → **Custom repositories** → this repository's link, category **Integration** → download myEnergy.
+1. HACS → Integrations → ⋮ → **Custom repositories** → `https://github.com/Gellclan/myenergy-homeassistant`, category **Integration** → download myEnergy.
    Without HACS: copy `custom_components/myenergy` to `config/custom_components/`.
 2. Restart Home Assistant.
 3. In myEnergy: **Settings → Electricity automatically → Generate key**, copy the key.

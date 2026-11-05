@@ -7,7 +7,8 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          ignore: brands
+          # topics und license zählen nur für die offizielle HACS-Liste; Lizenz ist bewusst „Alle Rechte vorbehalten“
+          ignore: brands topics license
   hassfest:
     runs-on: ubuntu-latest
     steps:

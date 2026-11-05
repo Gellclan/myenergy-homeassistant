@@ -7,7 +7,8 @@ CONF_METER_POWER = "meter_power"
 CONF_METER_IMPORT = "meter_import"
 CONF_METER_EXPORT = "meter_export"
 INTERVAL_S = 30
-DAYS_EVERY_S = 300
+# plugs, Tageswerte und Hauptzähler-Dokument nur so oft (Firestore-Kosten), die Leistung steht alle 30 s in live/ha
+DAYS_EVERY_S = 900
 # Home Assistant meldet nur Änderungen; so lange ohne Meldung gilt eine Steckdose als offline (wie STALE_S im Pi-Dienst)
 STALE_S = 86400
 # Ohne Plan Live (HTTP 402) nur noch stündlich nachfragen

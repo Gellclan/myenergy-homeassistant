@@ -15,7 +15,7 @@ from homeassistant.util import dt as dt_util
 from .api import send
 from .const import (CONF_KEY, CONF_METER_EXPORT, CONF_METER_IMPORT, CONF_METER_POWER, CONF_PLUGS, DAYS_EVERY_S,
                     INTERVAL_S, NO_PLAN_RETRY_S, STALE_S)
-from .logic import Tracker, meter_doc, plug_doc, plug_id, to_kwh, to_watt, writes
+from .logic import Tracker, live_doc, meter_doc, plug_doc, plug_id, to_kwh, to_watt, writes
 
 _LOGGER = logging.getLogger(__name__)
 _OFF = ("unavailable", "unknown", "")
@@ -38,7 +38,7 @@ def _num(state: State | None) -> float | None:
 
 
 class Sender:
-    """Liest die gewählten Sensoren und schickt sie alle 30 Sekunden, Tageswerte alle 5 Minuten."""
+    """Liest die gewählten Sensoren alle 30 Sekunden; schickt live/ha jedes Mal, den Rest bei Änderung oder alle 15 Minuten."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.hass, self.entry = hass, entry
@@ -111,13 +111,16 @@ class Sender:
                 pid, doc, watt, kwh = hit
                 plugs[pid] = doc
                 self.tracker.day(pid, today).add(watt, kwh)
-        days = None
-        if now - self.last_days >= DAYS_EVERY_S:
-            days = {pid: (today, self.tracker.day(pid, today).doc()) for pid in plugs}
+        full = now - self.last_days >= DAYS_EVERY_S
+        days = {pid: (today, self.tracker.day(pid, today).doc()) for pid in plugs} if full else None
+        changed = plugs if full else self.tracker.changed(plugs)
+        meter = self._meter(today)
         events = self.tracker.events(plugs)
-        status = await send(self.hass, self.entry.data[CONF_KEY], writes(plugs, days, self._meter(today), events))
+        body = writes(live_doc(plugs, meter), changed, days, meter if full else None, events)
+        status = await send(self.hass, self.entry.data[CONF_KEY], body)
         if status == 200:
-            if days is not None:
+            self.tracker.mark(changed)
+            if full:
                 self.last_days = now
         elif status in (401, 402):
             self.pause_until = now + NO_PLAN_RETRY_S

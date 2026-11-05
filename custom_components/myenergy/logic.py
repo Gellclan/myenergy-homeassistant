@@ -1,7 +1,7 @@
 """Reine Logik der myEnergy-Integration (ohne Home-Assistant-Import, damit sie ohne HA testbar ist).
 
-Schreibt dieselben Dokumente wie pi-dienst/live.py, nur über die Cloud Function `ingest`:
-plugs/{id}, plugs/{id}/days/{datum}, devices/hauptzaehler, events.
+Schreibt über die Cloud Function `ingest`. Kosten: je Takt (30 s) nur ein Dokument `live/ha` mit allen Leistungen;
+plugs/{id} nur bei Änderung (Name, Raum, erreichbar) und alle 15 Minuten, dann auch Tageswerte und devices/hauptzaehler.
 """
 from __future__ import annotations
 
@@ -97,6 +97,16 @@ class Tracker:
             d = self.days[pid] = Day(today)
         return d
 
+    sent: dict[str, dict] = field(default_factory=dict)
+
+    def changed(self, plugs: dict[str, dict]) -> dict[str, dict]:
+        """Steckdosen, deren beschreibende Felder sich seit dem letzten Senden geändert haben (Leistung zählt nicht)."""
+        return {pid: p for pid, p in plugs.items() if _slow(p) != self.sent.get(pid)}
+
+    def mark(self, plugs: dict[str, dict]) -> None:
+        """Nach erfolgreichem Senden merken."""
+        self.sent.update({pid: _slow(p) for pid, p in plugs.items()})
+
     def events(self, plugs: dict[str, dict]) -> list[dict]:
         """Wie detect_events im Pi-Dienst; beim ersten Mal je Steckdose keine Ereignisse. Spitze endet unter 80 %."""
         out: list[dict] = []
@@ -116,6 +126,18 @@ class Tracker:
         return out
 
 
+def _slow(p: dict) -> dict:
+    return {k: p.get(k) for k in ("name", "online", "source", "area", "category")}
+
+
+def live_doc(plugs: dict[str, dict], meter: dict | None) -> dict:
+    """live/ha: Leistung je erreichbarer Steckdose und die Werte des Hauptzählers, Web und App legen das über plugs/devices."""
+    doc: dict = {"plugs": {pid: p["watt"] for pid, p in plugs.items() if p["online"] and "watt" in p}, "updatedAt": SERVER_TIME}
+    if meter:
+        doc["meter"] = {**meter["values"], "seenAt": meter["seenAt"]}
+    return doc
+
+
 def meter_doc(power_w: float, import_kwh: float | None, export_kwh: float | None, today_kwh: float | None, seen_ms: int) -> dict:
     """devices/hauptzaehler wie device_doc im Pi-Dienst (Leistung = Bezug minus Einspeisung)."""
     values: dict = {"power": round(power_w, 1)}
@@ -128,9 +150,10 @@ def meter_doc(power_w: float, import_kwh: float | None, export_kwh: float | None
     return {"name": "Hauptzähler", "kind": "meter", "source": "smartmeter", "values": values, "seenAt": seen_ms, "updatedAt": SERVER_TIME}
 
 
-def writes(plugs: dict[str, dict], days: dict[str, tuple[str, dict]] | None, meter: dict | None, events: list[dict]) -> list[dict]:
-    """Schreibaufträge für ingest. days: je Steckdose (datum, Tagesdokument), nur alle 5 Minuten mitgeschickt."""
-    out = [{"op": "set", "path": f"plugs/{pid}", "data": doc} for pid, doc in plugs.items()]
+def writes(live: dict, plugs: dict[str, dict], days: dict[str, tuple[str, dict]] | None, meter: dict | None, events: list[dict]) -> list[dict]:
+    """Schreibaufträge für ingest: immer live/ha, dazu nur die übergebenen Steckdosen; days und meter nur alle 15 Minuten."""
+    out = [{"op": "set", "path": "live/ha", "data": live}]
+    out += [{"op": "set", "path": f"plugs/{pid}", "data": doc} for pid, doc in plugs.items()]
     for pid, (date, doc) in (days or {}).items():
         out.append({"op": "set", "path": f"plugs/{pid}/days/{date}", "data": doc})
     if meter:

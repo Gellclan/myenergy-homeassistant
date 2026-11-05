@@ -55,10 +55,23 @@ class LogicTest(unittest.TestCase):
         self.assertEqual([e["kind"] for e in t.events({"h": {**p, "online": False, "watt": 0}})], ["offline"])
 
     def test_schreibauftraege(self):
-        w = logic.writes({"p": {"name": "a"}}, {"p": ("2026-11-05", {"kwh": 1})}, logic.meter_doc(-300, 1.0, 2.0, None, 5), [{"kind": "spike"}])
-        self.assertEqual([x["path"] for x in w], ["plugs/p", "plugs/p/days/2026-11-05", "devices/hauptzaehler", "events"])
-        self.assertEqual(w[2]["data"]["values"], {"power": -300, "importKwh": 1.0, "exportKwh": 2.0})
-        self.assertEqual(w[3]["op"], "add")
+        meter = logic.meter_doc(-300, 1.0, 2.0, None, 5)
+        live = logic.live_doc({"p": {"name": "a", "online": True, "watt": 7}, "q": {"name": "b", "online": False, "watt": 0}}, meter)
+        self.assertEqual(live["plugs"], {"p": 7}, "nur erreichbare Steckdosen")
+        self.assertEqual(live["meter"], {"power": -300, "importKwh": 1.0, "exportKwh": 2.0, "seenAt": 5})
+        w = logic.writes(live, {"p": {"name": "a"}}, {"p": ("2026-11-05", {"kwh": 1})}, meter, [{"kind": "spike"}])
+        self.assertEqual([x["path"] for x in w], ["live/ha", "plugs/p", "plugs/p/days/2026-11-05", "devices/hauptzaehler", "events"])
+        self.assertEqual(w[4]["op"], "add")
+        self.assertEqual([x["path"] for x in logic.writes(live, {}, None, None, [])], ["live/ha"], "ohne Änderung nur ein Dokument")
+
+    def test_nur_aenderungen(self):
+        t = logic.Tracker()
+        p = {"name": "Herd", "online": True, "source": "matter", "watt": 10}
+        self.assertEqual(list(t.changed({"h": p})), ["h"], "neu")
+        t.mark({"h": p})
+        self.assertEqual(t.changed({"h": {**p, "watt": 999, "kwhTotal": 5}}), {}, "Leistung und kWh allein schreiben nicht")
+        self.assertEqual(list(t.changed({"h": {**p, "online": False}})), ["h"])
+        self.assertEqual(list(t.changed({"h": {**p, "area": "Küche"}})), ["h"])
 
 
 if __name__ == "__main__":

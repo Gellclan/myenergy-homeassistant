@@ -38,6 +38,18 @@ async def test_einrichten_und_senden(hass: HomeAssistant, aioclient_mock) -> Non
     assert by_path["plugs/ha-herd_power/days/" + next(p.split("/")[-1] for p in by_path if "/days/" in p)]["data"]["maxW"] == 250
     meter = by_path["devices/hauptzaehler"]["data"]
     assert meter["values"] == {"power": 1200, "importKwh": 1500, "todayKwh": 0}
+    assert by_path["live/ha"]["data"]["plugs"] == {"ha-herd_power": 250}
+
+    # nächster Takt ohne Änderung: nur live/ha (ein Schreibvorgang statt einer je Steckdose)
+    from datetime import timedelta
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+    hass.states.async_set("sensor.herd_power", "260", {"device_class": "power", "unit_of_measurement": "W", "friendly_name": "Herd Leistung"})
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=31))
+    await hass.async_block_till_done()
+    body = aioclient_mock.mock_calls[-1][2]
+    assert [w["path"] for w in body["writes"]] == ["live/ha"]
+    assert body["writes"][0]["data"]["plugs"] == {"ha-herd_power": 260}
 
 
 async def test_ohne_plan_live(hass: HomeAssistant, aioclient_mock) -> None:

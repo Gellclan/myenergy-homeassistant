@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "myEnergy",
+        "description": "Paste the pairing key from the myEnergy app (Settings → Electricity automatically → Generate key).",
+        "data": {
+          "key": "Pairing key"
+        }
+      },
+      "select": {
+        "title": "What should myEnergy see?",
+        "description": "Only power, energy and room are sent. Pre-selected: everything that measures power.",
+        "data": {
+          "plugs": "Plugs and devices that measure power",
+          "meter_power": "Smart meter: power (optional)",
+          "meter_import": "Smart meter: energy imported (optional)",
+          "meter_export": "Smart meter: energy exported (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_key": "The key has the wrong format. Copy it again from the myEnergy app.",
+      "unknown_key": "Key unknown or revoked. Generate a new one in the myEnergy app.",
+      "no_plan": "Live is not included in your myEnergy plan.",
+      "cannot_connect": "myEnergy cannot be reached. Check the internet connection."
+    },
+    "abort": {
+      "already_configured": "This myEnergy account is already set up."
+    }
+  }
+}

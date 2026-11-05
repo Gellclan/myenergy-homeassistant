@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "myEnergy",
+        "description": "Füge den Kopplungsschlüssel aus der myEnergy-App ein (Einstellungen → Strom automatisch → Schlüssel erzeugen).",
+        "data": {
+          "key": "Kopplungsschlüssel"
+        }
+      },
+      "select": {
+        "title": "Was soll myEnergy sehen?",
+        "description": "Gesendet werden nur Leistung, Verbrauch und Raum. Vorgewählt: alles, was Strom misst.",
+        "data": {
+          "plugs": "Steckdosen und Geräte mit Strommessung",
+          "meter_power": "Smart Meter: Leistung (optional)",
+          "meter_import": "Smart Meter: Bezug in kWh (optional)",
+          "meter_export": "Smart Meter: Einspeisung in kWh (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_key": "Der Schlüssel hat das falsche Format. Kopiere ihn noch einmal aus der myEnergy-App.",
+      "unknown_key": "Schlüssel unbekannt oder widerrufen. Erzeuge in der myEnergy-App einen neuen.",
+      "no_plan": "Live ist in deinem myEnergy-Plan nicht enthalten.",
+      "cannot_connect": "myEnergy ist nicht erreichbar. Prüfe die Internetverbindung."
+    },
+    "abort": {
+      "already_configured": "Dieses myEnergy-Konto ist schon eingerichtet."
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "myEnergy",
+        "description": "Collez la clé d’appairage de l’app myEnergy (Réglages → Électricité automatique → Générer une clé).",
+        "data": {
+          "key": "Clé d’appairage"
+        }
+      },
+      "select": {
+        "title": "Que doit voir myEnergy ?",
+        "description": "Seules la puissance, l’énergie et la pièce sont envoyées. Présélection : tout ce qui mesure la puissance.",
+        "data": {
+          "plugs": "Prises et appareils qui mesurent la puissance",
+          "meter_power": "Compteur : puissance (facultatif)",
+          "meter_import": "Compteur : énergie soutirée (facultatif)",
+          "meter_export": "Compteur : énergie injectée (facultatif)"
+        }
+      }
+    },
+    "error": {
+      "invalid_key": "La clé n’a pas le bon format. Copiez-la à nouveau depuis l’app myEnergy.",
+      "unknown_key": "Clé inconnue ou révoquée. Générez-en une nouvelle dans l’app myEnergy.",
+      "no_plan": "Live n’est pas inclus dans votre formule myEnergy.",
+      "cannot_connect": "myEnergy est injoignable. Vérifiez la connexion internet."
+    },
+    "abort": {
+      "already_configured": "Ce compte myEnergy est déjà configuré."
+    }
+  }
+}
